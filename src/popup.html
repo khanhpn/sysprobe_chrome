@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>System Monitor</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <main class="popup-shell" data-expanded="false">
+      <header class="popup-header">
+        <div class="brand">
+          <span class="brand-icon" aria-hidden="true">▣</span>
+          <h1>System Monitor</h1>
+        </div>
+        <div class="header-meta">
+          <span id="last-updated">Last updated --:--:--</span>
+          <button class="icon-button" type="button" aria-label="More options">⋮</button>
+        </div>
+      </header>
+
+      <section class="ticker" aria-label="System metrics">
+        <div id="ticker-content" class="ticker-content"></div>
+      </section>
+
+      <section id="details-panel" class="details-panel" aria-label="Metric details" hidden></section>
+
+      <footer class="actions">
+        <button id="refresh-button" type="button">↻ <span>Refresh</span></button>
+        <button id="details-button" type="button" aria-expanded="false">▥ <span>Details</span></button>
+        <button id="settings-button" type="button">⚙ <span>Settings</span></button>
+      </footer>
+    </main>
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>
