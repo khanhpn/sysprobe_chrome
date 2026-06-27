@@ -25,6 +25,27 @@
 
       <section id="details-panel" class="details-panel" aria-label="Metric details" hidden></section>
 
+      <section id="settings-panel" class="settings-panel" aria-label="Settings" hidden>
+        <label class="setting-row" for="refresh-interval">
+          <span>
+            <strong>Refresh interval</strong>
+            <small>Auto updates while this popup is open</small>
+          </span>
+          <select id="refresh-interval">
+            <option value="1000">1s</option>
+            <option value="2000">2s</option>
+            <option value="5000">5s</option>
+          </select>
+        </label>
+        <label class="setting-row setting-check" for="open-expanded">
+          <span>
+            <strong>Open expanded</strong>
+            <small>Show detail cards by default</small>
+          </span>
+          <input id="open-expanded" type="checkbox" />
+        </label>
+      </section>
+
       <footer class="actions">
         <button id="refresh-button" type="button">↻ <span>Refresh</span></button>
         <button id="details-button" type="button" aria-expanded="false">▥ <span>Details</span></button>

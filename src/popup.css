@@ -32,7 +32,7 @@ button {
 .popup-shell {
   width: 380px;
   min-height: 150px;
-  padding: 12px;
+  padding: 16px;
   background: var(--surface);
   border: 1px solid rgba(8, 17, 40, 0.08);
   border-radius: 16px;
@@ -44,7 +44,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 
 .brand,
@@ -55,39 +55,39 @@ button {
 }
 
 .brand {
-  gap: 8px;
+  gap: 10px;
 }
 
 .brand-icon {
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   border-radius: 6px;
   background: rgba(139, 92, 246, 0.13);
   color: var(--cpu);
-  font-size: 17px;
+  font-size: 22px;
   line-height: 1;
 }
 
 h1 {
   margin: 0;
-  font-size: 15px;
+  font-size: 19px;
   font-weight: 760;
   letter-spacing: 0;
 }
 
 .header-meta {
-  gap: 6px;
+  gap: 8px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
 .icon-button {
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   border: 0;
   border-radius: 6px;
@@ -106,16 +106,16 @@ h1 {
 .ticker-content {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  min-height: 36px;
+  min-height: 46px;
 }
 
 .ticker-item {
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr);
+  grid-template-columns: 18px minmax(0, 1fr);
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
-  padding: 6px 7px;
+  padding: 8px 9px;
   color: white;
   border-left: 1px solid rgba(255, 255, 255, 0.16);
 }
@@ -126,7 +126,7 @@ h1 {
 
 .metric-icon {
   color: var(--accent);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
 }
 
@@ -137,7 +137,7 @@ h1 {
 .metric-name {
   display: block;
   color: var(--accent);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 760;
   line-height: 1.05;
 }
@@ -146,8 +146,8 @@ h1 {
   display: block;
   overflow: hidden;
   color: #f8fafc;
-  font-size: 11px;
-  line-height: 1.2;
+  font-size: 14px;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -155,8 +155,13 @@ h1 {
 .details-panel {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-top: 10px;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.details-panel[hidden],
+.settings-panel[hidden] {
+  display: none;
 }
 
 .detail-card {
@@ -164,15 +169,15 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
-  padding: 8px;
+  padding: 10px;
 }
 
 .detail-title {
   display: flex;
   align-items: center;
-  gap: 5px;
-  margin-bottom: 6px;
-  font-size: 11px;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
   font-weight: 760;
 }
 
@@ -180,8 +185,8 @@ h1 {
   display: flex;
   align-items: end;
   gap: 2px;
-  height: 30px;
-  margin-bottom: 7px;
+  height: 38px;
+  margin-bottom: 9px;
 }
 
 .spark span {
@@ -194,28 +199,77 @@ h1 {
 }
 
 .detail-meta {
-  min-height: 24px;
+  min-height: 32px;
   color: #182033;
-  font-size: 10px;
-  line-height: 1.2;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.settings-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  color: #182033;
+  font-size: 13px;
+}
+
+.setting-row span {
+  display: grid;
+  gap: 2px;
+}
+
+.setting-row strong {
+  font-size: 13px;
+}
+
+.setting-row small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.setting-row select {
+  min-width: 82px;
+  height: 34px;
+  border: 1px solid #cfd7e6;
+  border-radius: 7px;
+  background: white;
+  color: var(--ink);
+}
+
+.setting-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--cpu);
 }
 
 .actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  margin-top: 10px;
+  margin-top: 12px;
   border-top: 1px solid var(--line);
 }
 
 .actions button {
-  height: 34px;
+  height: 42px;
   border: 0;
   border-left: 1px solid var(--line);
   background: transparent;
   color: #1f2a44;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 620;
 }
 

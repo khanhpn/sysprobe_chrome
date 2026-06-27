@@ -1,7 +1,7 @@
 import type { MetricsProvider } from "./provider.js";
 import type { MetricsSnapshot, SupportValue } from "./types.js";
 
-const unsupported = <T>(reason: string): SupportValue<T> => ({ supported: false, reason });
+const unavailable = <T>(reason: string): SupportValue<T> => ({ supported: false, reason });
 
 export const mockProvider: MetricsProvider = {
   async getSnapshot(): Promise<MetricsSnapshot> {
@@ -16,7 +16,7 @@ export const mockProvider: MetricsProvider = {
         modelName: "Development CPU",
         usagePercent: cpu,
         clockGhz: 3.9,
-        temperatureC: unsupported("CPU temperature requires Native Messaging or a local companion agent."),
+        temperatureC: unavailable("CPU temperature requires Native Messaging or a local companion agent."),
         history: makeWave(cpu, 18, 9)
       },
       memory: {
@@ -33,14 +33,14 @@ export const mockProvider: MetricsProvider = {
         availableBytes: 284 * 1024 ** 3,
         readMbps: { supported: true, value: 42 },
         writeMbps: { supported: true, value: 18 },
-        temperatureC: unsupported("SSD temperature requires Native Messaging or a local companion agent."),
+        temperatureC: unavailable("SSD temperature requires Native Messaging or a local companion agent."),
         history: makeBars(22)
       },
       network: {
         label: "NET",
-        downMbps: unsupported("Chrome extensions do not expose reliable raw network throughput."),
-        upMbps: unsupported("Chrome extensions do not expose reliable raw network throughput."),
-        latencyMs: unsupported("Network latency requires a real measured endpoint."),
+        downMbps: unavailable("Chrome extensions do not expose reliable raw network throughput."),
+        upMbps: unavailable("Chrome extensions do not expose reliable raw network throughput."),
+        latencyMs: unavailable("Network latency requires a real measured endpoint."),
         history: makeBars(22)
       },
       display: {

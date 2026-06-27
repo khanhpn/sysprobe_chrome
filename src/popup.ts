@@ -1,10 +1,12 @@
 import { createChromeSystemProvider } from "./metrics/chromeSystemProvider.js";
 import { mockProvider } from "./metrics/mockProvider.js";
 import type { MetricsProvider } from "./metrics/provider.js";
-import type { MetricsSnapshot, SupportValue } from "./metrics/types.js";
-import { formatBytes, formatPercent, formatSpeed, formatTimestamp } from "./utils/format.js";
+import type { MetricsSnapshot } from "./metrics/types.js";
+import { displayLabel, networkLabel, storageLabel } from "./utils/displayFormat.js";
+import { formatBytes, formatPercent, formatTimestamp } from "./utils/format.js";
 
-const REFRESH_INTERVAL_MS = 2000;
+const DEFAULT_REFRESH_INTERVAL_MS = 1000;
+const SETTINGS_KEY = "system-monitor-settings";
 const isExtensionRuntime = typeof globalThis.chrome?.system !== "undefined";
 const provider: MetricsProvider = isExtensionRuntime ? createChromeSystemProvider() : mockProvider;
 
@@ -12,26 +14,38 @@ const shell = document.querySelector<HTMLElement>(".popup-shell");
 const lastUpdated = document.querySelector<HTMLElement>("#last-updated");
 const tickerContent = document.querySelector<HTMLElement>("#ticker-content");
 const detailsPanel = document.querySelector<HTMLElement>("#details-panel");
+const settingsPanel = document.querySelector<HTMLElement>("#settings-panel");
 const refreshButton = document.querySelector<HTMLButtonElement>("#refresh-button");
 const detailsButton = document.querySelector<HTMLButtonElement>("#details-button");
 const settingsButton = document.querySelector<HTMLButtonElement>("#settings-button");
+const refreshIntervalSelect = document.querySelector<HTMLSelectElement>("#refresh-interval");
+const openExpandedInput = document.querySelector<HTMLInputElement>("#open-expanded");
 
 let expanded = false;
+let settingsOpen = false;
+let refreshIntervalMs = DEFAULT_REFRESH_INTERVAL_MS;
 let timerId: number | undefined;
 let latestSnapshot: MetricsSnapshot | undefined;
 
 refreshButton?.addEventListener("click", () => void refresh());
 detailsButton?.addEventListener("click", () => {
   expanded = !expanded;
+  saveSettings();
   render(latestSnapshot);
 });
 settingsButton?.addEventListener("click", () => {
-  settingsButton.title = "Settings will be added after the first stable UI version.";
+  settingsOpen = !settingsOpen;
+  render(latestSnapshot);
 });
-
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") startPolling();
-  else stopPolling();
+refreshIntervalSelect?.addEventListener("change", () => {
+  refreshIntervalMs = Number(refreshIntervalSelect.value) || DEFAULT_REFRESH_INTERVAL_MS;
+  saveSettings();
+  startPolling();
+});
+openExpandedInput?.addEventListener("change", () => {
+  expanded = Boolean(openExpandedInput.checked);
+  saveSettings();
+  render(latestSnapshot);
 });
 
 window.addEventListener("pagehide", () => stopPolling());
@@ -39,7 +53,7 @@ window.addEventListener("pagehide", () => stopPolling());
 const startPolling = (): void => {
   stopPolling();
   void refresh();
-  timerId = window.setInterval(() => void refresh(), REFRESH_INTERVAL_MS);
+  timerId = window.setInterval(() => void refresh(), refreshIntervalMs);
 };
 
 const stopPolling = (): void => {
@@ -53,14 +67,17 @@ const refresh = async (): Promise<void> => {
 };
 
 const render = (snapshot: MetricsSnapshot | undefined): void => {
-  if (!snapshot || !shell || !lastUpdated || !tickerContent || !detailsPanel || !detailsButton) return;
+  if (!snapshot || !shell || !lastUpdated || !tickerContent || !detailsPanel || !settingsPanel || !detailsButton || !settingsButton) return;
 
   shell.dataset.expanded = String(expanded);
   lastUpdated.textContent = `Last updated ${formatTimestamp(snapshot.updatedAt)}`;
   tickerContent.innerHTML = tickerItems(snapshot).join("");
   detailsPanel.hidden = !expanded;
+  settingsPanel.hidden = !settingsOpen;
   detailsButton.setAttribute("aria-expanded", String(expanded));
+  settingsButton.setAttribute("aria-expanded", String(settingsOpen));
   detailsButton.querySelector("span")!.textContent = expanded ? "Compact" : "Details";
+  settingsButton.querySelector("span")!.textContent = settingsOpen ? "Close" : "Settings";
 
   if (expanded) {
     detailsPanel.innerHTML = detailCards(snapshot).join("");
@@ -68,14 +85,12 @@ const render = (snapshot: MetricsSnapshot | undefined): void => {
 };
 
 const tickerItems = (snapshot: MetricsSnapshot): string[] => {
-  const display = snapshot.display.primary;
-
   return [
     metric("cpu", "◫", "CPU", snapshot.cpu.clockGhz ? `${snapshot.cpu.clockGhz.toFixed(2)} GHz` : formatPercent(snapshot.cpu.usagePercent)),
     metric("ram", "▥", "RAM", formatPercent(snapshot.memory.usedPercent)),
-    metric("ssd", "▤", "SSD", storageTicker(snapshot)),
-    metric("net", "↕", "NET", `↓${formatSupportSpeed(snapshot.network.downMbps)} ↑${formatSupportSpeed(snapshot.network.upMbps)}`),
-    metric("disp", "▭", "DISP", display ? `${display.width}x${display.height} ${display.refreshRate ?? "N/A"} Hz` : "N/A")
+    metric("ssd", "▤", "SSD", storageLabel(snapshot.storage)),
+    metric("net", "↕", "NET", networkLabel(snapshot.network)),
+    metric("disp", "▭", "DISP", displayLabel(snapshot.display))
   ];
 };
 
@@ -91,13 +106,12 @@ const metric = (kind: string, icon: string, name: string, value: string): string
 };
 
 const detailCards = (snapshot: MetricsSnapshot): string[] => {
-  const display = snapshot.display.primary;
   return [
-    card("cpu", "◫", "CPU", snapshot.cpu.history, `${formatPercent(snapshot.cpu.usagePercent)} · ${snapshot.cpu.clockGhz?.toFixed(2) ?? "N/A"} GHz`),
-    card("ram", "▥", "RAM", snapshot.memory.history, `${formatBytes(snapshot.memory.usedBytes)} / ${formatBytes(snapshot.memory.capacityBytes)}`),
-    card("ssd", "▤", "SSD", snapshot.storage.history, storageTicker(snapshot)),
-    card("net", "↕", "NET", snapshot.network.history, "unsupported"),
-    card("disp", "▭", "DISP", [65, 65, 65, 65, 65], display ? `${display.width}x${display.height}<br>${display.refreshRate ?? "N/A"} Hz` : "N/A")
+    card("cpu", "◫", "CPU", snapshot.cpu.history, cpuDetail(snapshot)),
+    card("ram", "▥", "RAM", snapshot.memory.history, memoryDetail(snapshot)),
+    card("ssd", "▤", "SSD", snapshot.storage.history, storageLabel(snapshot.storage)),
+    card("net", "↕", "NET", snapshot.network.history, networkLabel(snapshot.network)),
+    card("disp", "▭", "DISP", [65, 65, 65, 65, 65], displayLabel(snapshot.display))
   ];
 };
 
@@ -115,14 +129,42 @@ const card = (kind: string, icon: string, title: string, history: number[], meta
     </article>`;
 };
 
-const storageTicker = (snapshot: MetricsSnapshot): string => {
-  const read = snapshot.storage.readMbps.supported ? `R ${formatSpeed(snapshot.storage.readMbps.value)}` : "R N/A";
-  const write = snapshot.storage.writeMbps.supported ? `W ${formatSpeed(snapshot.storage.writeMbps.value)}` : "W N/A";
-  return `${read} / ${write}`;
+const cpuDetail = (snapshot: MetricsSnapshot): string => {
+  const usage = formatPercent(snapshot.cpu.usagePercent);
+  return snapshot.cpu.clockGhz ? `${usage} · ${snapshot.cpu.clockGhz.toFixed(2)} GHz` : usage;
 };
 
-const formatSupportSpeed = (value: SupportValue<number>): string => {
-  return value.supported ? formatSpeed(value.value).replace(" Mbps", "") : "N/A";
+const memoryDetail = (snapshot: MetricsSnapshot): string => {
+  if (snapshot.memory.usedBytes === undefined || snapshot.memory.capacityBytes === undefined) return "No data";
+  return `${formatBytes(snapshot.memory.usedBytes)} / ${formatBytes(snapshot.memory.capacityBytes)}`;
 };
 
+const loadSettings = (): void => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}") as { refreshIntervalMs?: number; expanded?: boolean };
+    refreshIntervalMs = stored.refreshIntervalMs ?? DEFAULT_REFRESH_INTERVAL_MS;
+    expanded = stored.expanded ?? false;
+  } catch {
+    refreshIntervalMs = DEFAULT_REFRESH_INTERVAL_MS;
+    expanded = false;
+  }
+
+  if (refreshIntervalSelect) refreshIntervalSelect.value = String(refreshIntervalMs);
+  if (openExpandedInput) openExpandedInput.checked = expanded;
+};
+
+const saveSettings = (): void => {
+  localStorage.setItem(
+    SETTINGS_KEY,
+    JSON.stringify({
+      refreshIntervalMs,
+      expanded
+    })
+  );
+
+  if (refreshIntervalSelect) refreshIntervalSelect.value = String(refreshIntervalMs);
+  if (openExpandedInput) openExpandedInput.checked = expanded;
+};
+
+loadSettings();
 startPolling();

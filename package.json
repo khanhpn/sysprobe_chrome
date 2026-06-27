@@ -1,6 +1,6 @@
 {
   "name": "system-monitor-extension",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Lightweight Manifest V3 Chrome extension popup for system metrics.",
   "type": "module",
   "private": true,
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "clean": "node scripts/clean.mjs",
-    "build": "pnpm clean && tsc -p tsconfig.json && node scripts/copy-static.mjs",
+    "build": "node scripts/generate-icons.mjs && pnpm clean && tsc -p tsconfig.json && node scripts/copy-static.mjs",
     "test": "pnpm build && node --test \"tests/**/*.test.mjs\""
   },
   "devDependencies": {

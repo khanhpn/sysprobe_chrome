@@ -1,5 +1,5 @@
 export const formatBytes = (bytes?: number): string => {
-  if (!Number.isFinite(bytes)) return "N/A";
+  if (!Number.isFinite(bytes)) return "No data";
   const units = ["B", "KB", "MB", "GB", "TB"];
   let value = Math.max(0, bytes ?? 0);
   let unitIndex = 0;
@@ -13,12 +13,12 @@ export const formatBytes = (bytes?: number): string => {
 };
 
 export const formatPercent = (percent?: number): string => {
-  if (!Number.isFinite(percent)) return "N/A";
+  if (!Number.isFinite(percent)) return "No data";
   return `${Math.round(Math.max(0, Math.min(100, percent ?? 0)))}%`;
 };
 
 export const formatSpeed = (mbps?: number | null): string => {
-  if (!Number.isFinite(mbps)) return "unsupported";
+  if (!Number.isFinite(mbps)) return "No data";
   const value = Math.max(0, mbps ?? 0);
   return value >= 100 ? `${Math.round(value)} Mbps` : `${value.toFixed(1)} Mbps`;
 };

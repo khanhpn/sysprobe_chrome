@@ -4,16 +4,16 @@ import { formatBytes, formatPercent, formatSpeed, formatTimestamp } from "../dis
 
 test("formatBytes renders binary units compactly", () => {
   assert.equal(formatBytes(16 * 1024 ** 3), "16.0 GB");
-  assert.equal(formatBytes(undefined), "N/A");
+  assert.equal(formatBytes(undefined), "No data");
 });
 
 test("formatPercent clamps invalid values and rounds valid values", () => {
   assert.equal(formatPercent(38.4), "38%");
-  assert.equal(formatPercent(undefined), "N/A");
+  assert.equal(formatPercent(undefined), "No data");
 });
 
-test("formatSpeed renders unsupported data truthfully", () => {
-  assert.equal(formatSpeed(null), "unsupported");
+test("formatSpeed renders unavailable data truthfully", () => {
+  assert.equal(formatSpeed(null), "No data");
   assert.equal(formatSpeed(120), "120 Mbps");
 });
 

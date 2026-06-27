@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="System Monitor">
-  <rect width="128" height="128" rx="30" fill="#f6f2ff"/>
-  <rect x="34" y="34" width="60" height="60" rx="10" fill="#8b5cf6"/>
-  <rect x="46" y="46" width="36" height="36" rx="5" fill="#ffffff"/>
-  <path d="M24 44h10M24 64h10M24 84h10M94 44h10M94 64h10M94 84h10M44 24v10M64 24v10M84 24v10M44 94v10M64 94v10M84 94v10" stroke="#8b5cf6" stroke-width="7" stroke-linecap="round"/>
-</svg>

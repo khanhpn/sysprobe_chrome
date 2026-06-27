@@ -13,7 +13,14 @@ type ChromeSystem = {
 
 type ChromeCpuInfo = {
   modelName?: string;
-  processors?: Array<{ usage?: { user: number; kernel: number; idle: number; total: number } }>;
+  processors?: Array<{ usage?: ChromeCpuUsage }>;
+};
+
+type ChromeCpuUsage = {
+  user: number;
+  kernel: number;
+  idle: number;
+  total: number;
 };
 
 type ChromeMemoryInfo = {
@@ -35,9 +42,11 @@ type ChromeDisplayUnit = {
   modes?: Array<{ isSelected?: boolean; refreshRate?: number }>;
 };
 
-const unsupported = <T>(reason: string): SupportValue<T> => ({ supported: false, reason });
+const unavailable = <T>(reason: string): SupportValue<T> => ({ supported: false, reason });
 
 export const createChromeSystemProvider = (globalChrome: ChromeSystem | undefined = globalThis.chrome as ChromeSystem | undefined): MetricsProvider => {
+  let previousCpuUsages: ChromeCpuUsage[] | undefined;
+
   return {
     async getSnapshot(): Promise<MetricsSnapshot> {
       const [cpuInfo, memoryInfo, storageUnits, displayUnits] = await Promise.all([
@@ -48,17 +57,20 @@ export const createChromeSystemProvider = (globalChrome: ChromeSystem | undefine
       ]);
 
       const storage = Array.isArray(storageUnits) ? storageUnits.find((unit) => unit.type === "fixed") ?? storageUnits[0] : undefined;
+      const currentCpuUsages = cpuUsages(cpuInfo);
+      const cpu = toCpuMetrics(cpuInfo, previousCpuUsages);
+      previousCpuUsages = currentCpuUsages;
 
       return {
         updatedAt: new Date(),
-        cpu: toCpuMetrics(cpuInfo),
+        cpu,
         memory: toMemoryMetrics(memoryInfo),
         storage: toStorageMetrics(storage),
         network: {
           label: "NET",
-          downMbps: unsupported("Chrome extensions do not expose reliable raw network throughput."),
-          upMbps: unsupported("Chrome extensions do not expose reliable raw network throughput."),
-          latencyMs: unsupported("Network latency requires a real measured endpoint."),
+          downMbps: unavailable("Chrome extensions do not expose reliable raw network throughput."),
+          upMbps: unavailable("Chrome extensions do not expose reliable raw network throughput."),
+          latencyMs: unavailable("Network latency requires a real measured endpoint."),
           history: []
         },
         display: toDisplayMetrics(Array.isArray(displayUnits) ? displayUnits : undefined)
@@ -67,13 +79,14 @@ export const createChromeSystemProvider = (globalChrome: ChromeSystem | undefine
   };
 };
 
-const toCpuMetrics = (info?: ChromeCpuInfo): CpuMetrics => {
+const toCpuMetrics = (info?: ChromeCpuInfo, previousCpuUsages?: ChromeCpuUsage[]): CpuMetrics => {
   const metrics: CpuMetrics = {
     label: "CPU",
-    temperatureC: unsupported("CPU temperature requires Native Messaging or a local companion agent."),
+    temperatureC: unavailable("CPU temperature requires Native Messaging or a local companion agent."),
     history: []
   };
-  const usagePercent = estimateCpuUsage(info);
+  const currentCpuUsages = cpuUsages(info);
+  const usagePercent = estimateCpuUsage(currentCpuUsages, previousCpuUsages);
 
   if (info?.modelName) metrics.modelName = info.modelName;
   if (usagePercent !== undefined) metrics.usagePercent = usagePercent;
@@ -100,9 +113,9 @@ const toMemoryMetrics = (info?: ChromeMemoryInfo): MemoryMetrics => {
 const toStorageMetrics = (unit?: ChromeStorageUnit): StorageMetrics => {
   const metrics: StorageMetrics = {
     label: "SSD",
-    readMbps: unsupported("Storage read throughput is not exposed by chrome.system.storage."),
-    writeMbps: unsupported("Storage write throughput is not exposed by chrome.system.storage."),
-    temperatureC: unsupported("SSD temperature requires Native Messaging or a local companion agent."),
+    readMbps: unavailable("Storage read throughput is not exposed by chrome.system.storage."),
+    writeMbps: unavailable("Storage write throughput is not exposed by chrome.system.storage."),
+    temperatureC: unavailable("SSD temperature requires Native Messaging or a local companion agent."),
     history: []
   };
 
@@ -124,17 +137,33 @@ const getOptional = <T>(api: ((callback: (value: T) => void) => void) | undefine
   });
 };
 
-const estimateCpuUsage = (info?: ChromeCpuInfo): number | undefined => {
-  const processors = info?.processors ?? [];
-  const totals = processors
+const cpuUsages = (info?: ChromeCpuInfo): ChromeCpuUsage[] => {
+  return (info?.processors ?? [])
     .map((processor) => processor.usage)
-    .filter((usage): usage is NonNullable<typeof usage> => Boolean(usage));
+    .filter((usage): usage is ChromeCpuUsage => Boolean(usage));
+};
 
-  if (totals.length === 0) return undefined;
+const estimateCpuUsage = (current: ChromeCpuUsage[], previous?: ChromeCpuUsage[]): number | undefined => {
+  if (current.length === 0) return undefined;
 
-  const active = totals.reduce((sum, usage) => sum + (usage.total - usage.idle), 0);
-  const total = totals.reduce((sum, usage) => sum + usage.total, 0);
+  const source = previous && previous.length === current.length ? deltaCpuUsages(current, previous) : current;
+  const active = source.reduce((sum, usage) => sum + (usage.total - usage.idle), 0);
+  const total = source.reduce((sum, usage) => sum + usage.total, 0);
   return total > 0 ? (active / total) * 100 : undefined;
+};
+
+const deltaCpuUsages = (current: ChromeCpuUsage[], previous: ChromeCpuUsage[]): ChromeCpuUsage[] => {
+  return current.map((usage, index) => {
+    const previousUsage = previous[index];
+    if (!previousUsage) return usage;
+
+    return {
+      user: Math.max(0, usage.user - previousUsage.user),
+      kernel: Math.max(0, usage.kernel - previousUsage.kernel),
+      idle: Math.max(0, usage.idle - previousUsage.idle),
+      total: Math.max(0, usage.total - previousUsage.total)
+    };
+  });
 };
 
 const toDisplayMetrics = (units?: ChromeDisplayUnit[]): DisplayMetrics => {
