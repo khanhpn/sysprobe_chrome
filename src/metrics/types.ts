@@ -5,7 +5,9 @@ export type SupportValue<T> =
 export interface CpuMetrics {
   label: "CPU";
   modelName?: string;
+  logicalProcessors?: number;
   usagePercent?: number;
+  perCoreUsagePercent?: number[];
   clockGhz?: number;
   temperatureC: SupportValue<number>;
   history: number[];
@@ -22,12 +24,21 @@ export interface MemoryMetrics {
 
 export interface StorageMetrics {
   label: "SSD";
+  units: StorageUnitMetrics[];
   capacityBytes?: number;
   availableBytes?: number;
   readMbps: SupportValue<number>;
   writeMbps: SupportValue<number>;
   temperatureC: SupportValue<number>;
   history: number[];
+}
+
+export interface StorageUnitMetrics {
+  id?: string;
+  name?: string;
+  type?: string;
+  capacityBytes?: number;
+  availableBytes?: number;
 }
 
 export interface NetworkMetrics {
@@ -40,12 +51,23 @@ export interface NetworkMetrics {
 
 export interface DisplayMetrics {
   label: "DISP";
+  count?: number;
   primary?: {
     width: number;
     height: number;
     refreshRate?: number;
     name?: string;
   };
+  displays: DisplayUnitMetrics[];
+}
+
+export interface DisplayUnitMetrics {
+  id?: string;
+  name?: string;
+  isPrimary?: boolean;
+  width?: number;
+  height?: number;
+  refreshRate?: number;
 }
 
 export interface MetricsSnapshot {

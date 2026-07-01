@@ -2,6 +2,8 @@
 
 A lightweight Manifest V3 Chrome extension popup for system metrics. The first version renders only when the toolbar popup opens and uses mock data by default outside Chrome.
 
+![System Monitor popup showing CPU, RAM, SSD, network, and display metrics](docs/system-monitor-popup.png)
+
 ## Install
 
 ```bash

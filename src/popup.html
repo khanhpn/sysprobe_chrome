@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./popup.css" />
   </head>
   <body>
-    <main class="popup-shell" data-expanded="false">
+    <main class="popup-shell" data-expanded="true">
       <header class="popup-header">
         <div class="brand">
           <span class="brand-icon" aria-hidden="true">▣</span>
@@ -23,7 +23,7 @@
         <div id="ticker-content" class="ticker-content"></div>
       </section>
 
-      <section id="details-panel" class="details-panel" aria-label="Metric details" hidden></section>
+      <section id="details-panel" class="details-panel" aria-label="Metric details"></section>
 
       <section id="settings-panel" class="settings-panel" aria-label="Settings" hidden>
         <label class="setting-row" for="refresh-interval">
@@ -42,13 +42,13 @@
             <strong>Open expanded</strong>
             <small>Show detail cards by default</small>
           </span>
-          <input id="open-expanded" type="checkbox" />
+          <input id="open-expanded" type="checkbox" checked />
         </label>
       </section>
 
       <footer class="actions">
         <button id="refresh-button" type="button">↻ <span>Refresh</span></button>
-        <button id="details-button" type="button" aria-expanded="false">▥ <span>Details</span></button>
+        <button id="details-button" type="button" aria-expanded="true">▥ <span>Compact</span></button>
         <button id="settings-button" type="button">⚙ <span>Settings</span></button>
       </footer>
     </main>

@@ -13,8 +13,10 @@ export const mockProvider: MetricsProvider = {
       updatedAt: new Date(),
       cpu: {
         label: "CPU",
-        modelName: "Development CPU",
+        modelName: "Apple M3 Pro",
+        logicalProcessors: 12,
         usagePercent: cpu,
+        perCoreUsagePercent: makeWave(cpu, 12, 24),
         clockGhz: 3.9,
         temperatureC: unavailable("CPU temperature requires Native Messaging or a local companion agent."),
         history: makeWave(cpu, 18, 9)
@@ -29,6 +31,22 @@ export const mockProvider: MetricsProvider = {
       },
       storage: {
         label: "SSD",
+        units: [
+          {
+            id: "disk0",
+            name: "Macintosh HD",
+            type: "fixed",
+            capacityBytes: 512 * 1024 ** 3,
+            availableBytes: 284 * 1024 ** 3
+          },
+          {
+            id: "usb1",
+            name: "Backup USB",
+            type: "removable",
+            capacityBytes: 128 * 1024 ** 3,
+            availableBytes: 88 * 1024 ** 3
+          }
+        ],
         capacityBytes: 512 * 1024 ** 3,
         availableBytes: 284 * 1024 ** 3,
         readMbps: { supported: true, value: 42 },
@@ -45,12 +63,31 @@ export const mockProvider: MetricsProvider = {
       },
       display: {
         label: "DISP",
+        count: 2,
         primary: {
           width: 1920,
           height: 1080,
           refreshRate: 60,
           name: "Primary Display"
-        }
+        },
+        displays: [
+          {
+            id: "display-1",
+            name: "Primary Display",
+            isPrimary: true,
+            width: 1920,
+            height: 1080,
+            refreshRate: 60
+          },
+          {
+            id: "display-2",
+            name: "Studio Display",
+            isPrimary: false,
+            width: 2560,
+            height: 1440,
+            refreshRate: 60
+          }
+        ]
       }
     };
   }
